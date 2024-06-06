@@ -1,6 +1,9 @@
 import { ALPHABET } from "./constants";
 import { VignereDecryptor } from "./VigenereDecryptor";
 
+const defaultText = 'THISVERYLONGTEXTSHOULDPERFORMABITBETTERTHANSHORTTEXTBECAUSETHEREISMORESPACEFORFREQUENCYANALYSISTOBEMOREPRECISE';
+const defaultKey = 'WATER';
+
 function vigenereEncrypt(plaintext, keyword) {
     let ciphertext = '';
     plaintext = plaintext.toUpperCase().replaceAll(' ', '');
@@ -26,14 +29,14 @@ const readline = require('readline').createInterface({
     output: process.stdout
 });
 
-readline.question('Enter plain text (default: diverttroopstoeastridge): ', (text) => {
-    const plainText = text.length > 0 ? text : 'diverttroopstoeastridge';
+readline.question(`Enter plain text (default: ${defaultText}): `, (text) => {
+    const plainText = text.length > 0 ? text : `${defaultText}`;
 
-    readline.question('Enter key (default: KING): ', (key) => {
-        const keyword = key.length > 0 ? key : 'KING';
+    readline.question(`Enter key (default: ${defaultKey}): `, (key) => {
+        const keyword = key.length > 0 ? key : `${defaultKey}`;
 
         const encryptedText = vigenereEncrypt(plainText, keyword);
-        console.log(`Encrypting ${plainText} with ${keyword}...`);
+        console.log(`Encrypting ${plainText} with ${keyword} ...`);
         console.log(`Encrypted text: ${encryptedText}`);
         readline.close();
     
