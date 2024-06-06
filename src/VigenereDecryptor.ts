@@ -22,6 +22,8 @@ export class VignereDecryptor {
 
         this.findKey();
         console.log("Key:", this.key);
+
+        console.log('Decrypted text: ', this.vigenereDecrypt())
     }
 
     findBestKeyLength() {
@@ -42,7 +44,6 @@ export class VignereDecryptor {
 
     findKeyLength(ciphertext: string) {
         const sequences = this.findRepeatingSequences(ciphertext);
-        console.log("Repeating Sequences:", sequences);
         const distances: number[] = [];
         for (const seq in sequences) {
             distances.push(...sequences[seq]);
@@ -57,7 +58,6 @@ export class VignereDecryptor {
             }
         }
         const sortedFactors = Object.keys(factors).sort((a, b) => factors[b] - factors[a]);
-        console.log("Factors:", factors);
         if (sortedFactors.length === 0) {
             return 1;  // Default to 1 if no factors found
         }
@@ -134,7 +134,7 @@ export class VignereDecryptor {
         }
 
         for (const letter of text) {
-            frequency[letter] /= text.length;
+            frequency[letter] = (frequency[letter]/text.length)*100;
         }
         
         return frequency;
@@ -151,6 +151,7 @@ export class VignereDecryptor {
             for (let j = i; j < this.cipheredText.length; j += this.keyLength) {
                 segment.push(this.cipheredText[j]);
             }
+            
             const segmentFreq = this.frequencyAnalysis(segment.join(''));
             let maxCorr = -Infinity;
             let bestShift = 0;
@@ -159,9 +160,8 @@ export class VignereDecryptor {
                 let corr = 0;
                 for (let k = 0; k < 26; k++) {
                     const shiftedChar = ALPHABET[(k + shift) % 26];
-                    console.log("Shifted Char:", shiftedChar, "Segment Freq:", segmentFreq[shiftedChar], "Letter Freq:", LETTER_FREQUENCY[ALPHABET[k]])
-                    corr += (segmentFreq[shiftedChar]) * (LETTER_FREQUENCY[ALPHABET[k]]);
-                    // console.log("Shifted Char:", shiftedChar, "Segment Freq:", segmentFreq[shiftedChar], "Letter Freq:", LETTER_FREQUENCY[ALPHABET[k]]);
+                    const shiftedCharFreq = Math.round(segmentFreq[shiftedChar])
+                    corr += (shiftedCharFreq || 0) * (LETTER_FREQUENCY[ALPHABET[k]] || 0);
                 }
                 if (corr > maxCorr) {
                     maxCorr = corr;
@@ -173,5 +173,23 @@ export class VignereDecryptor {
         }
         
         this.key = keyLocal.join('');
+    }
+
+    vigenereDecrypt() {
+        let plaintext = '';
+        for (let i = 0, j = 0; i < this.cipheredText.length; i++) {
+            const cipherChar = this.cipheredText.charAt(i);
+            if (ALPHABET.indexOf(cipherChar) !== -1) {
+                const cipherPos = ALPHABET.indexOf(cipherChar);
+                const keywordPos = ALPHABET.indexOf(this.key.charAt(j % this.key.length));
+                const plainPos = (cipherPos - keywordPos + 26) % 26;
+                plaintext += ALPHABET.charAt(plainPos);
+                j++;
+            } else {
+                plaintext += cipherChar;
+            }
+        }
+
+        return plaintext;
     }
 }

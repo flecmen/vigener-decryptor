@@ -3,7 +3,7 @@ import { VignereDecryptor } from "./VigenereDecryptor";
 
 function vigenereEncrypt(plaintext, keyword) {
     let ciphertext = '';
-    plaintext = plaintext.toUpperCase();
+    plaintext = plaintext.toUpperCase().replaceAll(' ', '');
     keyword = keyword.toUpperCase();
     
     for (let i = 0, j = 0; i < plaintext.length; i++) {
@@ -21,8 +21,26 @@ function vigenereEncrypt(plaintext, keyword) {
     return ciphertext;
 }
 
-const encryptedText = vigenereEncrypt('ONCEUPONATIMEINAVASTANDANCIENTFORESTTHERELIVEDAYOUNGWOMANNAMEDELLAWHOSPENTHERDAYSWANDERINGAMONGTHETREESANDEXPLORINGTHEMAGICALCREATURESTHATDWELTTHERESHEWASADVENTUROUSANDCURIOUSALWAYSSEEKINGNEWEXPERIENCESANDSECRETSTOUNCOVERONEBRIGHTANDSUNNYMORNINGS', 'KING');
+const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
-const decryptor = new VignereDecryptor(encryptedText)
+readline.question('Enter plain text (default: diverttroopstoeastridge): ', (text) => {
+    const plainText = text.length > 0 ? text : 'diverttroopstoeastridge';
 
-decryptor.run()
+    readline.question('Enter key (default: KING): ', (key) => {
+        const keyword = key.length > 0 ? key : 'KING';
+
+        const encryptedText = vigenereEncrypt(plainText, keyword);
+        console.log(`Encrypting ${plainText} with ${keyword}...`);
+        console.log(`Encrypted text: ${encryptedText}`);
+        readline.close();
+    
+        const decryptor = new VignereDecryptor(encryptedText)
+        
+        decryptor.run()
+    })
+});
+
+
