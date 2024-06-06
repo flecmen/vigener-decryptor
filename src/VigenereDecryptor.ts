@@ -14,11 +14,8 @@ export class VignereDecryptor {
     }
 
     run() {
-        this.runFrequencyAnalysis();
         this.findBestKeyLength();
         console.log("Key Length:", this.keyLength);
-
-        this.runFrequencyAnalysis();
 
         this.findKey();
         console.log("Key:", this.key);
@@ -120,10 +117,6 @@ export class VignereDecryptor {
         return ALPHABET.split('').reduce((acc, letter) => ({ ...acc, [letter]: 0 }), {})
     }
 
-    runFrequencyAnalysis() {  
-        this.relativeLetterFrequency = this.frequencyAnalysis(this.cipheredText);
-    }
-
     frequencyAnalysis(text: string) {
         const frequency = this.getEmptyFrequencyObject();
         
@@ -133,8 +126,8 @@ export class VignereDecryptor {
             }
         }
 
-        for (const letter of text) {
-            frequency[letter] = (frequency[letter]/text.length)*100;
+        for (const char of Object.keys(frequency)) {
+            frequency[char] = (frequency[char]/text.length)*100;
         }
         
         return frequency;
