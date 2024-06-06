@@ -177,16 +177,16 @@ function findKey(ciphertext, keyLength) {
 function decryptVigenereWithoutKey(ciphertext) {
     const guessedKeyLength = findBestKeyLength(ciphertext);
     console.log("Guessed Key Length:", guessedKeyLength);
-    // let guessedKey = findKey(ciphertext, guessedKeyLength);
-    // console.log("Guessed Key:", guessedKey);
+    let guessedKey = findKey(ciphertext, guessedKeyLength);
+    console.log("Guessed Key:", guessedKey);
 
-    // if (!englishWords.includes(guessedKey.toUpperCase())) {
-    //     console.log("Guessed Key is not a valid English word. Trying another approach...");
-    //     guessedKey = findKeyWithDictionaryCheck(ciphertext, guessedKeyLength);
-    // }
+    if (!englishWords.includes(guessedKey.toUpperCase())) {
+        console.log("Guessed Key is not a valid English word. Trying another approach...");
+        guessedKey = findKeyWithDictionaryCheck(ciphertext, guessedKeyLength);
+    }
 
-    // const plaintext = vigenereDecrypt(ciphertext, guessedKey);
-    // return { guessedKey, plaintext };
+    const plaintext = vigenereDecrypt(ciphertext, guessedKey);
+    return { guessedKey, plaintext };
 }
 
 function findKeyWithDictionaryCheck(ciphertext, keyLength) {

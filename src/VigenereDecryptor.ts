@@ -16,8 +16,12 @@ export class VignereDecryptor {
     run() {
         this.runFrequencyAnalysis();
         this.findBestKeyLength();
+        console.log("Key Length:", this.keyLength);
 
-        console.log(this.keyLength)
+        this.runFrequencyAnalysis();
+
+        this.findKey();
+        console.log("Key:", this.key);
     }
 
     findBestKeyLength() {
@@ -32,7 +36,7 @@ export class VignereDecryptor {
                 return
             }
         }
-    
+        
         this.keyLength = icKeyLength;
     }
 
@@ -109,48 +113,44 @@ export class VignereDecryptor {
     }
 
     resetLetterFrequency() {
-        this.relativeLetterFrequency = ALPHABET.split('').reduce((acc, letter) => ({ ...acc, [letter]: 0 }), {});
+        this.relativeLetterFrequency = this.getEmptyFrequencyObject();
+    }
+
+    getEmptyFrequencyObject() {
+        return ALPHABET.split('').reduce((acc, letter) => ({ ...acc, [letter]: 0 }), {})
     }
 
     runFrequencyAnalysis() {  
-        this.resetLetterFrequency();
-        const totalLetters = this.cipheredText.length;
-
-        for (const char of this.cipheredText) {
-            if (ALPHABET.indexOf(char) !== -1) { // is a letter of alphabet
-                this.relativeLetterFrequency[char]++;
-            }
-        }
-
-        for (const letter in this.relativeLetterFrequency) {
-            this.relativeLetterFrequency[letter] /= totalLetters;
-        }
+        this.relativeLetterFrequency = this.frequencyAnalysis(this.cipheredText);
     }
 
-    frequencyAnalysis(text) {
-        const frequency = Array(26).fill(0);
+    frequencyAnalysis(text: string) {
+        const frequency = this.getEmptyFrequencyObject();
         
         for (const char of text) {
-            if (ALPHABET.indexOf(char) !== -1) {
-                frequency[ALPHABET.indexOf(char)]++;
+            if (ALPHABET.indexOf(char) !== -1) { // is a letter of alphabet
+                frequency[char]++;
             }
+        }
+
+        for (const letter of text) {
+            frequency[letter] /= text.length;
         }
         
         return frequency;
     }
 
     findKey() {
-        const keyLocal: string[] = []
         if(this.keyLength === null) {
             throw new Error("Key length not found");
         }
+        const keyLocal: string[] = []
 
         for (let i = 0; i < this.keyLength; i++) {
             const segment: string[] = [];
             for (let j = i; j < this.cipheredText.length; j += this.keyLength) {
                 segment.push(this.cipheredText[j]);
             }
-            
             const segmentFreq = this.frequencyAnalysis(segment.join(''));
             let maxCorr = -Infinity;
             let bestShift = 0;
@@ -158,7 +158,10 @@ export class VignereDecryptor {
             for (let shift = 0; shift < 26; shift++) {
                 let corr = 0;
                 for (let k = 0; k < 26; k++) {
-                    corr += segmentFreq[(k + shift) % 26] * (26 - LETTER_FREQUENCY[k]);
+                    const shiftedChar = ALPHABET[(k + shift) % 26];
+                    console.log("Shifted Char:", shiftedChar, "Segment Freq:", segmentFreq[shiftedChar], "Letter Freq:", LETTER_FREQUENCY[ALPHABET[k]])
+                    corr += (segmentFreq[shiftedChar]) * (LETTER_FREQUENCY[ALPHABET[k]]);
+                    // console.log("Shifted Char:", shiftedChar, "Segment Freq:", segmentFreq[shiftedChar], "Letter Freq:", LETTER_FREQUENCY[ALPHABET[k]]);
                 }
                 if (corr > maxCorr) {
                     maxCorr = corr;
