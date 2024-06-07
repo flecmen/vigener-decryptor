@@ -1,6 +1,7 @@
 import { ALPHABET } from "./constants";
 import { VignereDecryptor } from "./VigenereDecryptor";
 
+// Inicializace default promenných
 const defaultText = 'THISVERYLONGTEXTSHOULDPERFORMABITBETTERTHANSHORTTEXTBECAUSETHEREISMORESPACEFORFREQUENCYANALYSISTOBEMOREPRECISE';
 const defaultKey = 'WATER';
 
@@ -29,6 +30,7 @@ const readline = require('readline').createInterface({
     output: process.stdout
 });
 
+// Získání inputu uživatele a spuštění algoritmu
 readline.question(`Enter plain text (default: ${defaultText}): `, (text) => {
     const plainText = text.length > 0 ? text : `${defaultText}`;
 
@@ -36,7 +38,7 @@ readline.question(`Enter plain text (default: ${defaultText}): `, (text) => {
         const keyword = key.length > 0 ? key : `${defaultKey}`;
 
         const encryptedText = vigenereEncrypt(plainText, keyword);
-        console.log(`Encrypting ${plainText} with ${keyword} ...`);
+        console.log(`Encrypting ...`);
         console.log(`Encrypted text: ${encryptedText}`);
         readline.close();
     

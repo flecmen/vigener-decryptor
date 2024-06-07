@@ -1,44 +1,49 @@
 import { ALPHABET, LETTER_FREQUENCY } from "./constants";
 
 export class VignereDecryptor {
-    keyLength: number | null = null;
-    key: string = '';
-    cipheredText: string;
-    resultText: string | null = null;
-    repeatingSequences: { [key: string]: number[] } = {};
-    relativeLetterFrequency: { [key: string]: number } = {}
+    keyLength: number | null = null; // Pro uložení délky klíče
+    key: string = ''; // Pro uložení dešifrovaného klíče
+    cipheredText: string; // Zašifrovaný text
+    resultText: string | null = null; // Pro uložení dešifrovaného textu
+    repeatingSequences: { [key: string]: number[] } = {}; // Pro uložení opakujících se sekvencí a jejich vzdáleností
 
     constructor(cipheredText: string) {
         this.cipheredText = cipheredText.toUpperCase();
-        this.resetLetterFrequency();
     }
 
+    // Hlavní funkce pro spuštění procesu dešifrování
     run() {
-        this.findBestKeyLength();
+        // Krok 1: Najít délku klíče
+        this.findBestKeyLength(); 
         console.log("Key Length:", this.keyLength);
 
-        this.findKey();
+        // Krok 2: Najít klíč pomocí nalezene délky klíče
+        this.findKey(); 
         console.log("Key:", this.key);
 
-        console.log('Decrypted text: ', this.vigenereDecrypt())
+        // Krok 3: Dešifrovat zašifrovaný text pomocí nalezeného klíče
+        this.vigenereDecrypt()
+        console.log('Decrypted text: ', this.resultText)
     }
 
+    // Najít nejlepší délku klíče pomocí Kasiskiho testu a Indexu shody (Index of Coincidence)
     findBestKeyLength() {
-        const kasiskiKeyLength = this.findKeyLength(this.cipheredText);
-        const icKeyLength = this.verifyKeyLength(this.cipheredText, kasiskiKeyLength) > 0.06 ? kasiskiKeyLength : 1;
-    
+        const kasiskiKeyLength = this.findKeyLength(this.cipheredText); // Použít Kasiskiho testu k nalezení počáteční délky klíče
+        const icKeyLength = this.verifyKeyLength(this.cipheredText, kasiskiKeyLength) > 0.06 ? kasiskiKeyLength : 1; // Ověřit pomocí Indexu shody
+   
         for (let keyLength = 2; keyLength <= 20; keyLength++) {
             if (keyLength === icKeyLength) continue;
             const averageIc = this.verifyKeyLength(this.cipheredText, keyLength);
             if (averageIc > 0.06) {
-                this.keyLength = keyLength;
+                this.keyLength = keyLength; // Nastavit délku klíče, pokud splňuje prahovou hodnotu IC
                 return
             }
         }
         
-        this.keyLength = icKeyLength;
+        this.keyLength = icKeyLength; // Výchozí nastavení na délku klíče podle IC, pokud není nalezena žádná jiná délka klíče
     }
 
+    // Použití Kasiskiho testu k nalezení opakujících se sekvencí a jejich vzdáleností a určení délky klíče z těchto vzdáleností
     findKeyLength(ciphertext: string) {
         const sequences = this.findRepeatingSequences(ciphertext);
         const distances: number[] = [];
@@ -56,20 +61,22 @@ export class VignereDecryptor {
         }
         const sortedFactors = Object.keys(factors).sort((a, b) => factors[b] - factors[a]);
         if (sortedFactors.length === 0) {
-            return 1;  // Default to 1 if no factors found
+            return 1;  // Výchozí nastavení na 1, pokud nebyly nalezeny žádné faktory
         }
+
         return parseInt(sortedFactors[0]);
     }
 
+    // Nalezení opakujících se sekvencí v zašifrovaném textu a zaznamenání jejich vzdáleností
     findRepeatingSequences(ciphertext: string) {
         const sequences = {};
-        for (let length = 3; length <= 5; length++) {  // Adjust the range if necessary
+        for (let length = 3; length <= 5; length++) {  // Hledání sekvencí délky 3 až 5
             for (let i = 0; i < ciphertext.length - length; i++) {
                 const sequence = ciphertext.substring(i, i + length);
                 for (let j = i + length; j < ciphertext.length - length; j++) {
                     if (ciphertext.substring(j, j + length) === sequence) {
                         if (!sequences[sequence]) sequences[sequence] = [];
-                        sequences[sequence].push(j - i);
+                        sequences[sequence].push(j - i); // Uložit vzdálenosti mezi opakujícími se sekvencemi
                     }
                 }
             }
@@ -77,6 +84,7 @@ export class VignereDecryptor {
         return sequences;
     }
     
+    // Výpočet Indexu shody (Index of Coincidence) pro daný textový segment
     indexOfCoincidence(text: string) {
         const frequency = {};
         let ic = 0;
@@ -96,6 +104,7 @@ export class VignereDecryptor {
         return ic;
     }
     
+    // Ověření délky klíče pomocí průměrného Indexu shody (Index of Coincidence) pro textové segmenty
     verifyKeyLength(ciphertext: string, keyLength: number) {
         let icSum = 0;
         for (let i = 0; i < keyLength; i++) {
@@ -109,30 +118,30 @@ export class VignereDecryptor {
         return averageIc;
     }
 
-    resetLetterFrequency() {
-        this.relativeLetterFrequency = this.getEmptyFrequencyObject();
-    }
-
+    // Inicializace prázdného objektu frekvence
     getEmptyFrequencyObject() {
         return ALPHABET.split('').reduce((acc, letter) => ({ ...acc, [letter]: 0 }), {})
     }
 
+    // Provádí frekvenční analýzu textu a určuje relativní frekvence jednotlivých písmen
     frequencyAnalysis(text: string) {
         const frequency = this.getEmptyFrequencyObject();
         
         for (const char of text) {
-            if (ALPHABET.indexOf(char) !== -1) { // is a letter of alphabet
+            if (ALPHABET.indexOf(char) !== -1) { // je to písmeno z abecedy
                 frequency[char]++;
             }
         }
 
+        // Vypočítat relativní frekvenci jako procento
         for (const char of Object.keys(frequency)) {
-            frequency[char] = (frequency[char]/text.length)*100;
+            frequency[char] = Math.round((frequency[char]/text.length)*100);
         }
         
         return frequency;
     }
 
+    // Krok 2: Najít klíč na základě určené délky klíče a frekvenční analýzy zašifrovaného textu
     findKey() {
         if(this.keyLength === null) {
             throw new Error("Key length not found");
@@ -168,6 +177,7 @@ export class VignereDecryptor {
         this.key = keyLocal.join('');
     }
 
+    // Krok 3: Dešifrovat zašifrovaný text pomocí nalezeného klíče
     vigenereDecrypt() {
         let plaintext = '';
         for (let i = 0, j = 0; i < this.cipheredText.length; i++) {
@@ -183,6 +193,6 @@ export class VignereDecryptor {
             }
         }
 
-        return plaintext;
+        this.resultText =  plaintext;
     }
 }
